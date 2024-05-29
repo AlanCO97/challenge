@@ -31,6 +31,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Create
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material3.Icon
+import androidx.compose.runtime.produceState
 
 
 @Composable
@@ -42,183 +43,64 @@ fun PassengerApp() {
         Room.databaseBuilder(
             context.applicationContext,
             DatabaseObject::class.java, "passengers"
-        ).allowMainThreadQueries().build()
+        ).build()
     }
+    val passengerDao = remember { db.passengerDao() }
     var name by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
     var fromUpdate by remember { mutableStateOf(false) }
-    val passengerDao = remember { db.passengerDao() }
+
     Passenger_appTheme {
-        Column(
+        // Wrapping content inside LazyColumn to make it scrollable
+        LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(16.dp),
-            verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
+            item {
+                var errorMessage by remember { mutableStateOf("") }
+                var successMessage by remember { mutableStateOf("") }
+                var passengerInserted by remember { mutableStateOf(false) }
 
-            var errorMessage by remember { mutableStateOf("") }
-            var successMessage by remember { mutableStateOf("") }
-            var passengerInserted by remember { mutableStateOf(false) }
-
-
-
-
-            LaunchedEffect(passengerInserted) {
-                passengers = passengerDao.getAll()
-                passengerInserted = false
-            }
-
-            val passengerCount = passengers.size
-
-            Text(
-                text = "Total de pasajeros: $passengerCount",
-                modifier = Modifier
-                    .align(Alignment.Start)
-                    .padding(bottom = 16.dp),
-            )
-
-            TextField(
-                value = name,
-                onValueChange = { name = it },
-                label = {
-                    Text(text = "Ingresa tu nombre")
-                },
-                placeholder = {
-                    Text(text = "Nombre")
-                },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(bottom = 16.dp)
-            )
-
-            TextField(
-                value = email,
-                onValueChange = { email = it },
-                label = {
-                    Text(text = "Ingresa tu correo")
-                },
-                placeholder = {
-                    Text(text = "Correo electronico")
-                },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(bottom = 16.dp)
-            )
-
-            if (errorMessage.isNotEmpty()) {
-                Text(
-                    text = errorMessage,
-                    color = androidx.compose.ui.graphics.Color.Red,
-                    modifier = Modifier.padding(bottom = 16.dp)
-                )
-            }
-
-            if (successMessage.isNotEmpty()) {
-                Text(
-                    text = successMessage,
-                    color = androidx.compose.ui.graphics.Color.Black,
-                    modifier = Modifier.padding(bottom = 16.dp)
-                )
-                LaunchedEffect(Unit) {
-                    delay(3000L)
-                    successMessage = ""
+                LaunchedEffect(passengerInserted) {
+                    passengers = passengerDao.getAll()
+                    passengerInserted = false
                 }
+
+                PassengerForm(
+                    name = name,
+                    onNameChange = { name = it },
+                    email = email,
+                    onEmailChange = { email = it },
+                    fromUpdate = fromUpdate,
+                    passengerDao = passengerDao,
+                    coroutineScope = coroutineScope,
+                    onPassengerInserted = { passengerInserted = true },
+                    passengers = passengers,
+                    errorMessage = errorMessage,
+                    successMessage = successMessage,
+                    setErrorMessage = { errorMessage = it },
+                    setSuccessMessage = { successMessage = it },
+                    setFromUpdate = { fromUpdate = it }
+                )
             }
 
-            Button(
-                onClick = {
-                    coroutineScope.launch {
-                        if (name.isBlank() || email.isBlank()) {
-                            errorMessage = "Nombre y correo son requeridos"
-                        } else {
-                            if (fromUpdate) {
-                                println("Se va a actualizar!!!")
-                                passengerDao.updateNameByEmail(email,name)
-                                name = ""
-                                email = ""
-                                errorMessage = ""
-                                successMessage = "¡Datos actualizados exitosamente!"
-                                passengerInserted = true
-                                fromUpdate = false
-                            } else {
-                                val existingPassengers = passengerDao.getByEmail(email)
-                                if (existingPassengers.isNotEmpty()) {
-                                    errorMessage = "Ya existe un pasajero con este correo"
-                                } else {
-                                    if (passengerCount >= 10) {
-                                        errorMessage = "No se pueden agregar más pasajeros"
-                                    }
-                                    else {
-                                        val passenger = Passenger(name = name, email = email)
-                                        passengerDao.insert(passenger)
-                                        name = ""
-                                        email = ""
-                                        errorMessage = ""
-                                        successMessage = "¡Datos guardados exitosamente!"
-                                        passengerInserted = true
-                                    }
-                                }
-                            }
-                        }
-                    }
-                },
-                enabled = passengerCount < 10,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(bottom = 16.dp)
-            ) {
-                Text(text = "Guardar")
-            }
-
-            Button(
-                onClick = {
-                    println("se enviaran los registros al servidor")
-                },
-                modifier = Modifier.fillMaxWidth()) {
-                Text(text = "Enviar al servidor")
-            }
-        }
-
-        LazyColumn(
-            modifier = Modifier.fillMaxWidth(),
-            contentPadding = PaddingValues(top = 16.dp)
-        ) {
             items(passengers) { passenger ->
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.padding(bottom = 4.dp)
-                ) {
-                    Text(
-                        text = "${passenger.name}, ${passenger.email}",
-                        modifier = Modifier.weight(1f)
-                    )
-                    Row {
-                        Button(
-                            onClick = {
-                                coroutineScope.launch {
-                                    passengerDao.deleteByEmail(passenger.email)
-                                    passengers = passengerDao.getAll()
-                                }
-                            },
-                            modifier = Modifier.padding(end = 8.dp)
-                        ) {
-                            Icon(Icons.Outlined.Delete, contentDescription = "Eliminar")
+                PassengerRow(
+                    passenger = passenger,
+                    onDelete = {
+                        coroutineScope.launch {
+                            passengerDao.deleteByEmail(passenger.email)
+                            passengers = passengerDao.getAll()
                         }
-
-                        Button(
-                            onClick = {
-                                coroutineScope.launch {
-                                    name = passenger.name
-                                    email = passenger.email
-                                    fromUpdate = true
-                                }
-                            }
-                        ) {
-                            Icon(Icons.Outlined.Create, contentDescription = "Actualizar")
-                        }
+                    },
+                    onUpdate = { selectedName, selectedEmail ->
+                        name = selectedName
+                        email = selectedEmail
+                        fromUpdate = true
                     }
-                }
+                )
             }
         }
     }
