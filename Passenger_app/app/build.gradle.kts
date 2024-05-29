@@ -83,4 +83,11 @@ dependencies {
 
     implementation(libs.androidx.room.ktx)
 
+    val retrofit_version = "2.9.0"
+    // Retrofit
+    implementation("com.squareup.retrofit2:retrofit:$retrofit_version")
+    // Retrofit with Scalar Converter
+    implementation("com.squareup.retrofit2:converter-scalars:$retrofit_version")
+    implementation("com.squareup.retrofit2:converter-gson:$retrofit_version")
+
 }

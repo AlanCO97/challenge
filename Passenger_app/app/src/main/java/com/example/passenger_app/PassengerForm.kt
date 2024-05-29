@@ -128,8 +128,17 @@ fun PassengerForm(
 
         Button(
             onClick = {
-              println("Se mandaran los datos al servidor")
+                coroutineScope.launch {
+                    try {
+                        println(passengers)
+                        ApiClient.reservationService.bulkCreate(passengers)
+                        setSuccessMessage("¡Datos guardados exitosamente!")
+                    } catch (e: Exception) {
+                        setErrorMessage("No se pudo agregar los pasajeros ${e.message}")
+                    }
+                }
             },
+            enabled = passengerCount == 10,
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(bottom = 16.dp)

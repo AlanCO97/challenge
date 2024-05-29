@@ -7,7 +7,7 @@ import androidx.room.PrimaryKey
 
 @Entity(indices = [Index(value = ["email"], unique = true)])
 data class Passenger(
-    @PrimaryKey(autoGenerate = true) var uid: Int = 0,
+    @PrimaryKey(autoGenerate = true) var id: Int = 0,
     @ColumnInfo(name="name") var name: String,
     @ColumnInfo(name="email") var email: String
 )
