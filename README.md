@@ -10,3 +10,9 @@ Para iniciar el proyecto ejecute los siguientes comandos
 Una vez levantado el servicio de rabbitmq se podrá acceder a la interfaz grafica del mismo en la dirección <http://localhost:15672/> usando el usuario de `root` y las password `123`
 
 En la carpeta `postman` vienen las peticiones guardas y estas se pueden exportar a `postman`
+
+## Android app
+
+* Abre la carpeta de `Passenger_app` en la aplicacion de `android studio`
+* Sincroniza las dependencias
+* Ejecuta el emulador
