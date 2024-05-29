@@ -1,5 +1,4 @@
 from typing import List, Optional
-from fastapi import HTTPException
 from sqlalchemy.orm import Session, joinedload
 from models.models import Passenger, Reservation
 from schemas.reservations import ReservationCreate, ReservationUpdate

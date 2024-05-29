@@ -1,6 +1,5 @@
 from unittest.mock import patch
 
-from services.reservation import ReservationService
 from schemas.passengers import Passenger
 from schemas.reservations import Reservation
 
@@ -215,10 +214,10 @@ def create_reservation(test_client) -> tuple[int, int]:
             "email": "john.doe@example.com"
         }
     }
-
-    response = test_client.post("api/reservations", json=reservation_data)
-    response_data = response.json()
-    return response_data["id"], response_data["passenger"]["id"]
+    with patch("api.reservation.publish_message", return_value=None):
+        response = test_client.post("api/reservations", json=reservation_data)
+        response_data = response.json()
+        return response_data["id"], response_data["passenger"]["id"]
 
 def get_all_reservations(test_client) -> int:
     response = test_client.get("/api/reservations")
