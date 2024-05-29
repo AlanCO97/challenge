@@ -3,6 +3,7 @@
 Para iniciar el proyecto ejecute los siguientes comandos
 
 * `make start-container` para levantar la base de datos y rabbitmq
+* Crea tu entorno viartual y activalo <https://www.freecodecamp.org/espanol/news/entornos-virtuales-de-python-explicados-con-ejemplos/>
 * `make requirements` para instalar los requerimientos
 * `make start-reservation` para levantar el servicio de reservaciones
 * En otra tab ejecutar `make start-passenger` para levantar el servicio de pasajeros
