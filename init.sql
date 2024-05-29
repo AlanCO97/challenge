@@ -1,0 +1,2 @@
+CREATE DATABASE reservas;
+CREATE DATABASE pasajeros;
